@@ -26,7 +26,7 @@ import { FSWatcher, watch } from "chokidar";
 import fs from "fs";
 import path from "path";
 import type stream from "stream";
-import { Disposer, ExtendedObservableMap, iter, Singleton, storedKubeConfigFolder } from "../../common/utils";
+import { Disposer, iter, Singleton, getOrInsertWith, storedKubeConfigFolder } from "../../common/utils";
 import logger from "../logger";
 import type { KubeConfig } from "@kubernetes/client-node";
 import { loadConfigFromString, splitConfig } from "../../common/kube-helpers";
@@ -269,7 +269,7 @@ function diffChangedConfig(filePath: string, source: RootSource): Disposer {
 }
 
 function watchFileChanges(filePath: string): [IComputedValue<CatalogEntity[]>, Disposer] {
-  const rootSource = new ExtendedObservableMap<string, ObservableMap<string, RootSourceValue>>();
+  const rootSource = observable.map<string, ObservableMap<string, RootSourceValue>>();
   const derivedSource = computed(() => Array.from(iter.flatMap(rootSource.values(), from => iter.map(from.values(), child => child[1]))));
 
   let watcher: FSWatcher;
@@ -303,7 +303,7 @@ function watchFileChanges(filePath: string): [IComputedValue<CatalogEntity[]>, D
           }
 
           cleanup();
-          cleanupFns.set(childFilePath, diffChangedConfig(childFilePath, rootSource.getOrInsert(childFilePath, observable.map)));
+          cleanupFns.set(childFilePath, diffChangedConfig(childFilePath, getOrInsertWith(rootSource, childFilePath, observable.map)));
         })
         .on("add", (childFilePath) => {
           if (isFolderSync) {
@@ -316,7 +316,7 @@ function watchFileChanges(filePath: string): [IComputedValue<CatalogEntity[]>, D
             }
           }
 
-          cleanupFns.set(childFilePath, diffChangedConfig(childFilePath, rootSource.getOrInsert(childFilePath, observable.map)));
+          cleanupFns.set(childFilePath, diffChangedConfig(childFilePath, getOrInsertWith(rootSource, childFilePath, observable.map)));
         })
         .on("unlink", (childFilePath) => {
           cleanupFns.get(childFilePath)?.();

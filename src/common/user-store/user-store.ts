@@ -29,7 +29,7 @@ import { kubeConfigDefaultPath } from "../kube-helpers";
 import { appEventBus } from "../event-bus";
 import path from "path";
 import { fileNameMigration } from "../../migrations/user-store";
-import { ObservableToggleSet, toJS } from "../../renderer/utils";
+import { getOrInsertWith, toggle, toJS } from "../../renderer/utils";
 import { DESCRIPTORS, KubeconfigSyncValue, UserPreferencesModel, EditorConfiguration } from "./preferences-helpers";
 import logger from "../../main/logger";
 import type {monaco} from "react-monaco-editor";
@@ -69,7 +69,7 @@ export class UserStore extends BaseStore<UserStoreModel> /* implements UserStore
   @observable shell?: string;
   @observable downloadBinariesPath?: string;
   @observable kubectlBinariesPath?: string;
-  
+
   /**
    * Download kubectl binaries matching cluster version
    */
@@ -80,13 +80,13 @@ export class UserStore extends BaseStore<UserStoreModel> /* implements UserStore
    * The column IDs under each configurable table ID that have been configured
    * to not be shown
    */
-  hiddenTableColumns = observable.map<string, ObservableToggleSet<string>>();
+  hiddenTableColumns = observable.map<string, Set<string>>();
 
   /**
    * Monaco editor configs
    */
-   @observable editorConfiguration:EditorConfiguration = {tabSize: null, miniMap: null, lineNumbers: null};
-  
+   @observable editorConfiguration: EditorConfiguration = {tabSize: null, miniMap: null, lineNumbers: null};
+
   /**
    * The set of file/folder paths to be synced
    */
@@ -115,7 +115,7 @@ export class UserStore extends BaseStore<UserStoreModel> /* implements UserStore
       });
     }, {
       fireImmediately: true,
-    }); 
+    });
   }
 
   // Returns monaco editor options for selected editor type (the place, where a particular instance of the editor is mounted)
@@ -165,11 +165,10 @@ export class UserStore extends BaseStore<UserStoreModel> /* implements UserStore
    * Toggles the hidden configuration of a table's column
    */
   toggleTableColumnVisibility(tableId: string, columnId: string) {
-    if (!this.hiddenTableColumns.get(tableId)) {
-      this.hiddenTableColumns.set(tableId, new ObservableToggleSet());
-    }
-
-    this.hiddenTableColumns.get(tableId).toggle(columnId);
+    toggle(
+      getOrInsertWith(this.hiddenTableColumns, tableId, observable.set),
+      columnId,
+    );
   }
 
   @action

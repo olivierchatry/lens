@@ -23,8 +23,7 @@ import moment from "moment-timezone";
 import path from "path";
 import os from "os";
 import { ThemeStore } from "../../renderer/theme.store";
-import { ObservableToggleSet } from "../utils";
-import type {monaco} from "react-monaco-editor";
+import type { monaco } from "react-monaco-editor";
 import merge from "lodash/merge";
 
 export interface KubeconfigSyncEntry extends KubeconfigSyncValue {
@@ -200,10 +199,10 @@ const openAtLogin: PreferenceDescription<boolean> = {
   },
 };
 
-const hiddenTableColumns: PreferenceDescription<[string, string[]][], Map<string, ObservableToggleSet<string>>> = {
+const hiddenTableColumns: PreferenceDescription<[string, string[]][], Map<string, Set<string>>> = {
   fromStore(val) {
     return new Map(
-      (val ?? []).map(([tableId, columnIds]) => [tableId, new ObservableToggleSet(columnIds)])
+      (val ?? []).map(([tableId, columnIds]) => [tableId, new Set(columnIds)])
     );
   },
   toStore(val) {

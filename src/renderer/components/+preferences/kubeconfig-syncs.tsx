@@ -28,7 +28,7 @@ import fse from "fs-extra";
 import { KubeconfigSyncEntry, KubeconfigSyncValue, UserStore } from "../../../common/user-store";
 import { Spinner } from "../spinner";
 import logger from "../../../main/logger";
-import { iter, multiSet } from "../../utils";
+import { iter } from "../../utils";
 import { isWindows } from "../../../common/vars";
 import { PathPicker } from "../path-picker/path-picker";
 
@@ -109,7 +109,9 @@ export class KubeconfigSyncs extends React.Component {
   }
 
   @action
-  onPick = async (filePaths: string[]) => multiSet(this.syncs, await getAllEntries(filePaths));
+  onPick = async (filePaths: string[]) => {
+    this.syncs.merge(await getAllEntries(filePaths));
+  };
 
   renderEntryIcon(entry: Entry) {
     switch (entry.info.type) {
