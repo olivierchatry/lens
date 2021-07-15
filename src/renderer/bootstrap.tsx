@@ -30,7 +30,7 @@ import * as LensExtensionsCommonApi from "../extensions/common-api";
 import * as LensExtensionsRendererApi from "../extensions/renderer-api";
 import { monaco } from "react-monaco-editor";
 import { render, unmountComponentAtNode } from "react-dom";
-import { delay } from "../common/utils";
+import { CreateSingletons, delay } from "../common/utils";
 import { isMac, isDevelopment } from "../common/vars";
 import { ClusterStore } from "../common/cluster-store";
 import { UserStore } from "../common/user-store";
@@ -39,7 +39,6 @@ import { ExtensionLoader } from "../extensions/extension-loader";
 import { App } from "./components/app";
 import { LensApp } from "./lens-app";
 import { HelmRepoManager } from "../main/helm/helm-repo-manager";
-import { ExtensionInstallationStateStore } from "./components/+extensions/extension-install.store";
 import { DefaultProps } from "./mui-base-theme";
 import configurePackages from "../common/configure-packages";
 import * as initializers from "./initializers";
@@ -51,6 +50,7 @@ import { ThemeStore } from "./theme.store";
 import { SentryInit } from "../common/sentry";
 import { TerminalStore } from "./components/dock/terminal.store";
 import cloudsMidnight from "./monaco-themes/Clouds Midnight.json";
+import { ExtensionInstallationStateStore } from "./components/+extensions/extension-install.store";
 
 configurePackages();
 
@@ -87,46 +87,44 @@ export async function bootstrap(App: AppComponent) {
   initializers.initCatalog();
   initializers.initIpcRendererListeners();
 
-  ExtensionLoader.createInstance().init();
-  ExtensionDiscovery.createInstance().init();
-
-  UserStore.createInstance();
-
   SentryInit();
 
-  // ClusterStore depends on: UserStore
-  const cs = ClusterStore.createInstance();
-
-  await cs.loadInitialOnRenderer();
-
-  // HotbarStore depends on: ClusterStore
-  HotbarStore.createInstance();
-  ExtensionsStore.createInstance();
-  FilesystemProvisionerStore.createInstance();
-
-  // define Monaco Editor themes
-  const { base, ...params } = cloudsMidnight;
-  const baseTheme = base as monaco.editor.BuiltinTheme;
-
-  monaco.editor.defineTheme("clouds-midnight", {base: baseTheme, ...params});
-
-  // ThemeStore depends on: UserStore
-  ThemeStore.createInstance();
-
-  // TerminalStore depends on: ThemeStore
-  TerminalStore.createInstance();
-  WeblinkStore.createInstance();
+  await CreateSingletons.begin()
+    .declare(ExtensionDiscovery, discovery => discovery.init())
+    .declare(ExtensionLoader, loader => loader.init())
+    .declare(UserStore)
+    .declare(ExtensionsStore)
+    .declare(FilesystemProvisionerStore)
+    .declare(WeblinkStore)
+    .declare(HelmRepoManager)
+    .declare(ClusterStore, async store => {
+      await store.loadInitialOnRenderer();
+      store.registerIpcListener();
+    },
+    {
+      requires: [UserStore],
+    })
+    .declare(HotbarStore, {
+      requires: [ClusterStore],
+    })
+    .declare(ThemeStore, {
+      requires: [UserStore],
+    })
+    .declare(TerminalStore, {
+      requires: [ThemeStore],
+    })
+    .buildAll();
 
   ExtensionInstallationStateStore.bindIpcListeners();
-  HelmRepoManager.createInstance(); // initialize the manager
 
-  // Register additional store listeners
-  cs.registerIpcListener();
+  // define Monaco Editor themes
+  monaco.editor.defineTheme("clouds-midnight", cloudsMidnight as monaco.editor.IStandaloneThemeData);
 
   // init app's dependencies if any
   if (App.init) {
     await App.init();
   }
+
   window.addEventListener("message", (ev: MessageEvent) => {
     if (ev.data === "teardown") {
       UserStore.getInstance(false)?.unregisterIpcListener();
