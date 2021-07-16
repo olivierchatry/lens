@@ -82,7 +82,6 @@ export function webpackLensRenderer({ showVars = true } = {}): webpack.Configura
     optimization: {
       minimize: false
     },
-
     module: {
       rules: [
         {
@@ -146,14 +145,6 @@ export function webpackLensRenderer({ showVars = true } = {}): webpack.Configura
     plugins: [
       new ProgressBarPlugin(),
       new ForkTsCheckerPlugin(),
-
-      // todo: fix remain warnings about circular dependencies
-      // new CircularDependencyPlugin({
-      //   cwd: __dirname,
-      //   exclude: /node_modules/,
-      //   allowAsyncCycles: true,
-      //   failOnError: false,
-      // }),
 
       // todo: check if this actually works in mode=production files
       // new webpack.DllReferencePlugin({
