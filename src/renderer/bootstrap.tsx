@@ -89,7 +89,7 @@ export async function bootstrap(App: AppComponent) {
 
   SentryInit();
 
-  await CreateSingletons.begin()
+  CreateSingletons.begin()
     .declare(ExtensionDiscovery, discovery => discovery.init())
     .declare(ExtensionLoader, loader => loader.init())
     .declare(UserStore)
@@ -97,9 +97,9 @@ export async function bootstrap(App: AppComponent) {
     .declare(FilesystemProvisionerStore)
     .declare(WeblinkStore)
     .declare(HelmRepoManager)
-    .declare(ClusterStore, async store => {
-      await store.loadInitialOnRenderer();
-      store.registerIpcListener();
+    .declare(ClusterStore, store => {
+      store.loadInitialOnRenderer()
+        .then(() => store.registerIpcListener());
     },
     {
       requires: [UserStore],

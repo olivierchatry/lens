@@ -143,7 +143,7 @@ app.on("ready", async () => {
 
   logger.info("💾 Loading stores");
 
-  await CreateSingletons.begin()
+  CreateSingletons.begin()
     .declare(ClusterManager, manager => manager.init(), {
       requires: [ClusterStore],
     })
@@ -162,7 +162,7 @@ app.on("ready", async () => {
     .declare(HotbarStore, {
       requires: [ClusterStore],
     })
-    .declare(PrometheusProviderRegistry, () => initializers.initPrometheusProviderRegistry())
+    .declare(PrometheusProviderRegistry, initializers.initPrometheusProviderRegistry)
     .declare(UserStore, store => store.startMainReactions())
     .declare(ExtensionsStore)
     .declare(DetectorRegistry, initializers.initClusterMetadataDetectors)

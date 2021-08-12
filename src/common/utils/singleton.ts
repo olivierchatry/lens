@@ -94,7 +94,7 @@ export interface DeclareOpts {
   requires?: Iterable<typeof Singleton>,
 }
 
-type Initializer<T> = (instance: T) => void | Promise<void>;
+type Initializer<T> = (instance: T) => void;
 
 interface CreateRequirements {
   builds: typeof Singleton,
@@ -176,7 +176,7 @@ export class CreateSingletons {
     return this;
   }
 
-  async buildAll(): Promise<void> {
+  buildAll(): void {
     while (this.#requirements.length > 0) {
       const nextSatisfiedIndex = this.#requirements.findIndex(creation => creation.requires.size === 0);
 
@@ -200,7 +200,7 @@ export class CreateSingletons {
         builds.createInstance();
       }
 
-      await init?.(builds.getInstance());
+      init?.(builds.getInstance());
 
       for (const requirement of this.#requirements) {
         requirement.requires.delete(builds);
