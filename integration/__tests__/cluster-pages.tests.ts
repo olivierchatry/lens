@@ -41,39 +41,53 @@ function getSidebarSelectors(itemId: string) {
   };
 }
 
-interface CommonPageTest {
-  drawer?: string
-  drawerId?: string
-  pages: {
-    name: string,
-    href: string,
-    expectedSelector: string,
-    expectedText: string
-  }[];
+function getLoadedSelector(page: CommonPage): string {
+  if (page.expectedText) {
+    return `${page.expectedSelector} >> text='${page.expectedText}'`;
+  }
+
+  return page.expectedSelector;
+}
+
+interface CommonPage {
+  name: string;
+  href: string;
+  expectedSelector: string;
+  expectedText?: string;
+}
+
+interface TopPageTest {
+  page: CommonPage;
+}
+
+interface SubPageTest {
+  drawerId: string;
+  pages: CommonPage[];
+}
+
+type CommonPageTest = TopPageTest | SubPageTest;
+
+function isTopPageTest(test: CommonPageTest): test is TopPageTest {
+  return typeof (test as any).page === "object";
 }
 
 const commonPageTests: CommonPageTest[] = [{
-  drawer: "",
-  drawerId: "",
-  pages: [{
+  page: {
     name: "Cluster",
     href: "cluster",
     expectedSelector: "div.ClusterOverview div.label",
     expectedText: "CPU"
-  }]
+  }
 },
 {
-  drawer: "",
-  drawerId: "",
-  pages: [{
+  page: {
     name: "Nodes",
     href: "nodes",
     expectedSelector: "h5.title",
     expectedText: "Nodes"
-  }]
+  }
 },
 {
-  drawer: "Workloads",
   drawerId: "workloads",
   pages: [{
     name: "Overview",
@@ -125,7 +139,6 @@ const commonPageTests: CommonPageTest[] = [{
   }]
 },
 {
-  drawer: "Configuration",
   drawerId: "config",
   pages: [{
     name: "ConfigMaps",
@@ -165,7 +178,6 @@ const commonPageTests: CommonPageTest[] = [{
   }]
 },
 {
-  drawer: "Network",
   drawerId: "networks",
   pages: [{
     name: "Services",
@@ -193,7 +205,6 @@ const commonPageTests: CommonPageTest[] = [{
   }]
 },
 {
-  drawer: "Storage",
   drawerId: "storage",
   pages: [{
     name: "Persistent Volume Claims",
@@ -215,33 +226,27 @@ const commonPageTests: CommonPageTest[] = [{
   }]
 },
 {
-  drawer: "",
-  drawerId: "",
-  pages: [{
+  page: {
     name: "Namespaces",
     href: "namespaces",
     expectedSelector: "h5.title",
     expectedText: "Namespaces"
-  }]
+  }
 },
 {
-  drawer: "",
-  drawerId: "",
-  pages: [{
+  page: {
     name: "Events",
     href: "events",
     expectedSelector: "h5.title",
     expectedText: "Events"
-  }]
+  }
 },
 {
-  drawer: "Apps",
   drawerId: "apps",
   pages: [{
     name: "Charts",
     href: "apps/charts",
-    expectedSelector: "h5.title",
-    expectedText: "Helm Charts"
+    expectedSelector: "div.HelmCharts input",
   },
   {
     name: "Releases",
@@ -251,7 +256,6 @@ const commonPageTests: CommonPageTest[] = [{
   }]
 },
 {
-  drawer: "Access Control",
   drawerId: "users",
   pages: [{
     name: "Service Accounts",
@@ -291,7 +295,6 @@ const commonPageTests: CommonPageTest[] = [{
   }]
 },
 {
-  drawer: "Custom Resources",
   drawerId: "custom-resources",
   pages: [{
     name: "Definitions",
@@ -310,31 +313,33 @@ utils.describeIf(minikubeReady(TEST_NAMESPACE))("Minikube based tests", () => {
 
       const frame = await utils.lauchMinikubeClusterFromCatalog(window);
 
-      for (const { pages, drawer, drawerId } of commonPageTests) {
-        const selectors = getSidebarSelectors(drawerId);
-
-        if (drawer !== "") {
-          const mainPageSelector = `${selectors.subMenuLink(pages[0].href)} >> text='${pages[0].name}'`;
-
-          await frame.click(selectors.expandSubMenu);
-          await frame.waitForSelector(mainPageSelector);
-
-          for (const page of pages) {
-            const subPageButton = await frame.waitForSelector(selectors.subMenuLink(page.href));
-
-            await subPageButton.click();
-            await frame.waitForSelector(`${page.expectedSelector} >> text='${page.expectedText}'`);
-          }
-
-          await frame.click(selectors.expandSubMenu);
-          await frame.waitForSelector(mainPageSelector, { state: "hidden" });
-        } else {
-          const { href, expectedText, expectedSelector } = pages[0];
+      for (const test of commonPageTests) {
+        if (isTopPageTest(test)) {
+          const { href, expectedText, expectedSelector } = test.page;
           const menuButton = await frame.waitForSelector(`a[href^="/${href}"]`);
 
           await menuButton.click();
           await frame.waitForSelector(`${expectedSelector} >> text='${expectedText}'`);
+
+          continue;
         }
+
+        const { drawerId, pages } = test;
+        const selectors = getSidebarSelectors(drawerId);
+        const mainPageSelector = `${selectors.subMenuLink(pages[0].href)} >> text='${pages[0].name}'`;
+
+        await frame.click(selectors.expandSubMenu);
+        await frame.waitForSelector(mainPageSelector);
+
+        for (const page of pages) {
+          const subPageButton = await frame.waitForSelector(selectors.subMenuLink(page.href));
+
+          await subPageButton.click();
+          await frame.waitForSelector(getLoadedSelector(page));
+        }
+
+        await frame.click(selectors.expandSubMenu);
+        await frame.waitForSelector(mainPageSelector, { state: "hidden" });
       }
     } finally {
       await cleanup();

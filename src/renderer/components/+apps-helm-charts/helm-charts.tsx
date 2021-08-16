@@ -93,12 +93,11 @@ export class HelmCharts extends Component<Props> {
             chart => chart.getAppVersion(),
             chart => chart.getKeywords(),
           ]}
-          customizeHeader={({ searchProps, ...headerPlaceholders }) => ({
+          customizeHeader={({ searchProps }) => ({
             searchProps: {
               ...searchProps,
               placeholder: "Search Helm Charts...",
-            },
-            ...headerPlaceholders
+            }
           })}
           renderTableHeader={[
             { className: "icon", showWithColumn: columnId.name },
