@@ -413,7 +413,7 @@ utils.describeIf(minikubeReady(TEST_NAMESPACE))("Minikube based tests", () => {
     }
   });
 
-  it.only(`should create the ${TEST_NAMESPACE} and a pod in the namespace`, async () => {
+  it(`should create the ${TEST_NAMESPACE} and a pod in the namespace`, async () => {
     const { window, cleanup } = await utils.start();
 
     try {
