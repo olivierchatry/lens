@@ -18,8 +18,6 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import * as util from "util";
-import { exec } from "child_process";
 import { Frame, Page, _electron as electron } from "playwright";
 
 export const AppPaths: Partial<Record<NodeJS.Platform, string>> = {
@@ -34,27 +32,6 @@ export function itIf(condition: boolean) {
 
 export function describeIf(condition: boolean) {
   return condition ? describe : describe.skip;
-}
-
-export const promiseExec = util.promisify(exec);
-
-type HelmRepository = {
-  name: string;
-  url: string;
-};
-
-export async function listHelmRepositories(): Promise<HelmRepository[]>{
-  for (let i = 0; i < 10; i += 1) {
-    try {
-      const { stdout } = await promiseExec("helm repo list -o json");
-
-      return JSON.parse(stdout);
-    } catch {
-      await new Promise(r => setTimeout(r, 2000)); // if no repositories, wait for Lens adding bitnami repository
-    }
-  }
-
-  return [];
 }
 
 export async function start() {

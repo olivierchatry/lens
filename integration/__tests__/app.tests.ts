@@ -62,12 +62,6 @@ describe("preferences page tests", () => {
   });
 
   it("ensures helm repos", async () => {
-    const repos = await utils.listHelmRepositories();
-
-    if (repos.length === 0) {
-      fail("Lens failed to add any repositories");
-    }
-
     const { window, cleanup } = await utils.start();
 
     try {
@@ -75,7 +69,7 @@ describe("preferences page tests", () => {
       await window.keyboard.press("Meta+,");
 
       await window.click("[data-testid=kubernetes-tab]");
-      await window.waitForSelector(`[data-testid=repository-name] >> text=${repos[0].name}`, {
+      await window.waitForSelector("[data-testid=repository-name]", {
         timeout: 100_000,
       });
       await window.click("#HelmRepoSelect");

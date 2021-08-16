@@ -90,6 +90,11 @@ export class WindowManager extends Singleton {
           nodeIntegrationInSubFrames: true,
           enableRemoteModule: true,
           contextIsolation: false,
+          additionalArguments: [
+            ...(process.argv.includes("--integration-testing")
+              ? ["--integration-testing"]
+              : [])
+          ]
         },
       });
       this.windowState.manage(this.mainWindow);
