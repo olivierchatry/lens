@@ -28,9 +28,10 @@ import { StorageHelper } from "./storageHelper";
 import { ClusterStore } from "../../common/cluster-store";
 import logger from "../../main/logger";
 import { getHostedClusterId, getPath, noop } from "../../common/utils";
+import { isIntegrationTesting } from "../../common/vars";
 
 const storage = observable({
-  initialized: false,
+  initialized: isIntegrationTesting,
   loaded: false,
   data: {} as Record<string/*key*/, any>, // json-serializable
 });
@@ -50,7 +51,7 @@ export function createAppStorage<T>(key: string, defaultValue: T, clusterId?: st
   const fileName = `${clusterId ?? "app"}.json`;
   const filePath = path.resolve(folder, fileName);
 
-  if (!storage.initialized && !process.argv.includes("--integration-testing")) {
+  if (!storage.initialized) {
     storage.initialized = true;
 
     // read previously saved state (if any)

@@ -27,7 +27,7 @@ import * as Mobx from "mobx";
 import * as LensExtensionsCommonApi from "../extensions/common-api";
 import * as LensExtensionsMainApi from "../extensions/main-api";
 import { app, autoUpdater, dialog, powerMonitor } from "electron";
-import { appName, isMac, productName } from "../common/vars";
+import { appName, isIntegrationTesting, isMac, productName } from "../common/vars";
 import path from "path";
 import { LensProxy } from "./lens-proxy";
 import { WindowManager } from "./window-manager";
@@ -271,11 +271,7 @@ app.on("activate", (event, hasVisibleWindows) => {
 /**
  * This variable should is used so that `autoUpdater.installAndQuit()` works
  */
-let blockQuit = true;
-
-if (process.argv.includes("--integration-testing")) {
-  blockQuit = false;
-}
+let blockQuit = !isIntegrationTesting;
 
 autoUpdater.on("before-quit-for-update", () => blockQuit = false);
 
