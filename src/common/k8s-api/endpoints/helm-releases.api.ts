@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import jsYaml from "js-yaml";
+import yaml from "js-yaml";
 import { autoBind, formatDuration } from "../../utils";
 import capitalize from "lodash/capitalize";
 import { apiBase } from "../index";
@@ -116,7 +116,7 @@ export async function createRelease(payload: IReleaseCreatePayload): Promise<IRe
   const { repo, ...data } = payload;
 
   data.chart = `${repo}/${data.chart}`;
-  data.values = jsYaml.safeLoad(data.values);
+  data.values = yaml.load(data.values);
 
   return apiBase.post(endpoint(), { data });
 }
@@ -125,7 +125,7 @@ export async function updateRelease(name: string, namespace: string, payload: IR
   const { repo, ...data } = payload;
 
   data.chart = `${repo}/${data.chart}`;
-  data.values = jsYaml.safeLoad(data.values);
+  data.values = yaml.load(data.values);
 
   return apiBase.put(endpoint({ name, namespace }), { data });
 }

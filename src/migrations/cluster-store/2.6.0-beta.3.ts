@@ -32,7 +32,7 @@ export default {
       const cluster = value[1];
 
       if (!cluster.kubeConfig) continue;
-      const kubeConfig = yaml.safeLoad(cluster.kubeConfig);
+      const kubeConfig = yaml.load(cluster.kubeConfig);
 
       if (!kubeConfig.hasOwnProperty("users")) continue;
       const userObj = kubeConfig.users[0];
@@ -56,7 +56,7 @@ export default {
             name: userObj.name,
             user
           }];
-          cluster.kubeConfig = yaml.safeDump(kubeConfig);
+          cluster.kubeConfig = yaml.dump(kubeConfig);
           store.set(clusterKey, cluster);
         }
       }

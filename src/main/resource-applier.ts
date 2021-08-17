@@ -38,7 +38,7 @@ export class ResourceApplier {
     resource = this.sanitizeObject(resource);
     appEventBus.emit({ name: "resource", action: "apply" });
 
-    return await this.kubectlApply(yaml.safeDump(resource));
+    return await this.kubectlApply(yaml.dump(resource));
   }
 
   protected async kubectlApply(content: string): Promise<string> {

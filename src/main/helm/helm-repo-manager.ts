@@ -105,7 +105,7 @@ export class HelmRepoManager extends Singleton {
 
       const repoConfigFile = this.helmEnv.HELM_REPOSITORY_CONFIG;
       const { repositories }: HelmRepoConfig = await readFile(repoConfigFile, "utf8")
-        .then((yamlContent: string) => yaml.safeLoad(yamlContent))
+        .then((yamlContent: string) => yaml.load(yamlContent))
         .catch(() => ({
           repositories: []
         }));

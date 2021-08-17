@@ -25,7 +25,7 @@ import React from "react";
 import path from "path";
 import fs from "fs-extra";
 import {Select, GroupSelectOption, SelectOption} from "../select";
-import jsYaml from "js-yaml";
+import yaml from "js-yaml";
 import { observable, makeObservable } from "mobx";
 import { observer } from "mobx-react";
 import { cssNames } from "../../utils";
@@ -102,7 +102,7 @@ export class CreateResource extends React.Component<Props> {
     }
 
     // skip empty documents if "---" pasted at the beginning or end
-    const resources = jsYaml.safeLoadAll(this.data).filter(Boolean);
+    const resources = yaml.loadAll(this.data).filter(Boolean);
     const createdResources: string[] = [];
     const errors: string[] = [];
 

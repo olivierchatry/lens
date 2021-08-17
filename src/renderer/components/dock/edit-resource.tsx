@@ -24,7 +24,7 @@ import "./edit-resource.scss";
 import React from "react";
 import { action, computed, makeObservable, observable } from "mobx";
 import { observer } from "mobx-react";
-import jsYaml from "js-yaml";
+import yaml from "js-yaml";
 import type { DockTab } from "./dock.store";
 import { cssNames } from "../../utils";
 import { editResourceStore } from "./edit-resource.store";
@@ -71,13 +71,13 @@ export class EditResource extends React.Component<Props> {
       return draft;
     }
 
-    return jsYaml.safeDump(this.resource.toPlainObject()); // dump resource first time
+    return yaml.dump(this.resource.toPlainObject()); // dump resource first time
   }
 
   @action
   saveDraft(draft: string | object) {
     if (typeof draft === "object") {
-      draft = draft ? jsYaml.safeDump(draft) : undefined;
+      draft = draft ? yaml.dump(draft) : undefined;
     }
 
     editResourceStore.setData(this.tabId, {
@@ -96,7 +96,7 @@ export class EditResource extends React.Component<Props> {
       return null;
     }
     const store = editResourceStore.getStore(this.tabId);
-    const updatedResource: KubeObject = await store.update(this.resource, jsYaml.safeLoad(this.draft));
+    const updatedResource: KubeObject = await store.update(this.resource, yaml.load(this.draft));
 
     this.saveDraft(updatedResource.toPlainObject()); // update with new resourceVersion to avoid further errors on save
     const resourceType = updatedResource.kind;

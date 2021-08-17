@@ -89,7 +89,7 @@ export class HelmChartManager {
   protected async cachedYaml(): Promise<CachedYaml> {
     if (!(this.repo.name in this.cache)) {
       const cacheFile = await fs.promises.readFile(this.repo.cacheFilePath, "utf-8");
-      const data = yaml.safeLoad(cacheFile);
+      const data = yaml.load(cacheFile);
 
       for(const key in data["entries"]) {
         data["entries"][key].forEach((version: any) => {

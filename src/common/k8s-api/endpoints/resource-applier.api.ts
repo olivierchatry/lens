@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import jsYaml from "js-yaml";
+import yaml from "js-yaml";
 import type { KubeJsonApiData } from "../kube-json-api";
 import { apiBase } from "../index";
 
@@ -30,7 +30,7 @@ export const resourceApplierApi = {
 
   async update(resource: object | string): Promise<KubeJsonApiData | null> {
     if (typeof resource === "string") {
-      resource = jsYaml.safeLoad(resource);
+      resource = yaml.load(resource);
     }
 
     const [data = null] = await apiBase.post<KubeJsonApiData[]>("/stack", { data: resource });
