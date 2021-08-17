@@ -52,8 +52,8 @@ export async function start() {
     app,
     window,
     cleanup: async () => {
-      await window.close();
-      await app.close();
+      await window.close().catch(err => void err);
+      await app.close().catch(err => void err);
     },
   };
 }
