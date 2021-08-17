@@ -25,6 +25,8 @@ import * as k8s from "@kubernetes/client-node";
 import type { KubeConfig } from "@kubernetes/client-node";
 import type { Cluster } from "../cluster";
 import { ShellOpenError, ShellSession } from "./shell-session";
+import { Node, NodesApi } from "../../common/k8s-api/endpoints";
+import { KubeJsonApi } from "../../common/k8s-api/kube-json-api";
 
 export class NodeShellSession extends ShellSession {
   ShellType = "node-shell";
@@ -54,10 +56,27 @@ export class NodeShellSession extends ShellSession {
       throw new ShellOpenError("failed to create node pod", error);
     }
 
-    const args = ["exec", "-i", "-t", "-n", "kube-system", this.podId, "--", "sh", "-c", "((clear && bash) || (clear && ash) || (clear && sh))"];
     const env = await this.getCachedShellEnv();
+    const args = ["exec", "-i", "-t", "-n", "kube-system", this.podId, "--"];
+    const nodeApi = new NodesApi({
+      objectConstructor: Node,
+      request: KubeJsonApi.forCluster(this.cluster),
+    });
+    const node = await nodeApi.get({ name: this.nodeName });
+    const nodeOs = node.getOperatingSystem();
 
-    super.open(shell, args, env);
+    switch (nodeOs) {
+      case "linux":
+        args.push("sh", "-c", "((clear && bash) || (clear && ash) || (clear && sh))");
+        break;
+      case "windows":
+        args.push("powershell");
+        break;
+      default:
+        throw new Error(`Cannot open node shell for ${this.nodeName}: unknown operating sytem ${nodeOs}`);
+    }
+
+    return super.open(shell, args, env);
   }
 
   protected createNodeShellPod() {
