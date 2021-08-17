@@ -27,7 +27,7 @@
 */
 import * as utils from "../helpers/utils";
 
-jest.setTimeout(20_000);
+jest.setTimeout(100_000);
 
 describe("preferences page tests", () => {
   it('shows "preferences" and can navigate through the tabs', async () => {

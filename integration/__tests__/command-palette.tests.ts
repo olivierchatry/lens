@@ -21,7 +21,7 @@
 
 import * as utils from "../helpers/utils";
 
-jest.setTimeout(20_000);
+jest.setTimeout(100_000);
 
 describe("Lens command palette", () => {
   describe("menu", () => {
