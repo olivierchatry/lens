@@ -18,6 +18,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+import { createHash } from "crypto";
+import * as os from "os";
+import * as path from "path";
 import { Frame, Page, _electron as electron } from "playwright";
 
 export const AppPaths: Partial<Record<NodeJS.Platform, string>> = {
@@ -59,6 +62,10 @@ export async function clickWelcomeButton(window: Page) {
   await window.click("#hotbarIcon-catalog-entity .Icon");
 }
 
+function minikubeEntityId() {
+  return createHash("md5").update(`${path.join(os.homedir(), ".kube", "config")}:minikube`).digest("hex");
+}
+
 /**
  * From the catalog, click the minikube entity and wait for it to connect, returning its frame
  */
@@ -68,7 +75,7 @@ export async function lauchMinikubeClusterFromCatalog(window: Page): Promise<Fra
   await window.waitForSelector("div.drawer-title-text >> text='KubernetesCluster: minikube'");
   await window.click("div.EntityIcon div.HotbarIcon div div.MuiAvatar-root");
 
-  const minikubeFrame = await window.waitForSelector("#cluster-frame-484e864bad9b84ce5d6b4fff704cc0e4");
+  const minikubeFrame = await window.waitForSelector(`#cluster-frame-${minikubeEntityId()}`);
 
   const frame = await minikubeFrame.contentFrame();
 

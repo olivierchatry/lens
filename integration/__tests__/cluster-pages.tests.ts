@@ -252,7 +252,7 @@ const commonPageTests: CommonPageTest[] = [{
     name: "Releases",
     href: "apps/releases",
     expectedSelector: "h5.title",
-    expectedText: "Helm Releases"
+    expectedText: "Releases"
   }]
 },
 {
