@@ -41,6 +41,8 @@ export async function start() {
   let app: ElectronApplication;
 
   appStart: {
+    let error = undefined;
+    
     for (let i = 0; i < 5; i += 1) {
       try {
         app = await electron.launch({
@@ -49,16 +51,12 @@ export async function start() {
           bypassCSP: true,
         });
         break appStart;
-      } catch (error) {
-        if (error instanceof errors.TimeoutError) {
-          continue;
-        }
-
-        throw error;
+      } catch (e) {
+        error = e;
       }
     }
 
-    throw new errors.TimeoutError("Failed to start electron after several attempts");
+    throw error ?? new errors.TimeoutError("Failed to start electron after several attempts");
   }
 
   const window = await app.waitForEvent("window", {
