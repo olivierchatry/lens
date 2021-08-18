@@ -28,7 +28,7 @@
     "build:linux": "yarn run compile && electron-builder --linux --dir",
     "build:mac": "yarn run compile && electron-builder --mac --dir",
     "build:win": "yarn run compile && electron-builder --win --dir",
-    "integration": "jest --runInBand integration",
+    "integration": "jest --runInBand --detectOpenHandles --forceExit integration",
     "dist": "yarn run compile && electron-builder --publish onTag",
     "dist:win": "yarn run compile && electron-builder --publish onTag --x64 --ia32",
     "dist:dir": "yarn run dist --dir -c.compression=store -c.mac.identity=null",

@@ -30,8 +30,6 @@ import { minikubeReady } from "../helpers/minikube";
 
 const TEST_NAMESPACE = "integration-tests";
 
-jest.setTimeout(100_000);
-
 function getSidebarSelectors(itemId: string) {
   const root = `.SidebarItem[data-test-id="${itemId}"]`;
 
@@ -344,7 +342,7 @@ utils.describeIf(minikubeReady(TEST_NAMESPACE))("Minikube based tests", () => {
     } finally {
       await cleanup();
     }
-  });
+  }, 10*60*1000);
 
   it("show logs and highlight the log search entries", async () => {
     const { window, cleanup } = await utils.start();
@@ -395,7 +393,7 @@ utils.describeIf(minikubeReady(TEST_NAMESPACE))("Minikube based tests", () => {
     } finally {
       await cleanup();
     }
-  });
+  }, 10*60*1000);
 
   it("should show the default namespaces", async () => {
     const { window, cleanup } = await utils.start();
@@ -411,7 +409,7 @@ utils.describeIf(minikubeReady(TEST_NAMESPACE))("Minikube based tests", () => {
     } finally {
       await cleanup();
     }
-  });
+  }, 10*60*1000);
 
   it(`should create the ${TEST_NAMESPACE} and a pod in the namespace`, async () => {
     const { window, cleanup } = await utils.start();
@@ -490,5 +488,5 @@ utils.describeIf(minikubeReady(TEST_NAMESPACE))("Minikube based tests", () => {
     } finally {
       await cleanup();
     }
-  });
+  }, 10*60*1000);
 });

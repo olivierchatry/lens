@@ -27,8 +27,6 @@
 */
 import * as utils from "../helpers/utils";
 
-jest.setTimeout(100_000);
-
 describe("preferences page tests", () => {
   it('shows "preferences" and can navigate through the tabs', async () => {
     const { window, cleanup } = await utils.start();
@@ -59,7 +57,7 @@ describe("preferences page tests", () => {
     } finally {
       await cleanup();
     }
-  });
+  }, 10*60*1000);
 
   it("ensures helm repos", async () => {
     const { window, cleanup } = await utils.start();
@@ -77,5 +75,5 @@ describe("preferences page tests", () => {
     } finally {
       await cleanup();
     }
-  }, 120_000);
+  }, 10*60*1000);
 });

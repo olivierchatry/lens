@@ -21,7 +21,7 @@
 import { createHash } from "crypto";
 import * as os from "os";
 import * as path from "path";
-import { Frame, Page, _electron as electron } from "playwright";
+import { Frame, Page, _electron as electron, errors, ElectronApplication } from "playwright";
 
 export const AppPaths: Partial<Record<NodeJS.Platform, string>> = {
   "win32": "./dist/win-unpacked/OpenLens.exe",
@@ -38,11 +38,28 @@ export function describeIf(condition: boolean) {
 }
 
 export async function start() {
-  const app = await electron.launch({
-    args: ["--integration-testing"], // this argument turns off the blocking of quit
-    executablePath: AppPaths[process.platform],
-    bypassCSP: true,
-  });
+  let app: ElectronApplication;
+
+  appStart: {
+    for (let i = 0; i < 5; i += 1) {
+      try {
+        app = await electron.launch({
+          args: ["--integration-testing"], // this argument turns off the blocking of quit
+          executablePath: AppPaths[process.platform],
+          bypassCSP: true,
+        });
+        break appStart;
+      } catch (error) {
+        if (error instanceof errors.TimeoutError) {
+          continue;
+        }
+
+        throw error;
+      }
+    }
+
+    throw new errors.TimeoutError("Failed to start electron after several attempts");
+  }
 
   const window = await app.waitForEvent("window", {
     predicate: async (page) => page.url().startsWith("http://localhost"),
