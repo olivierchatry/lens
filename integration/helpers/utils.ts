@@ -21,7 +21,7 @@
 import { createHash } from "crypto";
 import * as os from "os";
 import * as path from "path";
-import { Frame, Page, _electron as electron, errors, ElectronApplication } from "playwright";
+import { Frame, Page, _electron as electron } from "playwright";
 
 export const AppPaths: Partial<Record<NodeJS.Platform, string>> = {
   "win32": "./dist/win-unpacked/OpenLens.exe",
@@ -37,40 +37,45 @@ export function describeIf(condition: boolean) {
   return condition ? describe : describe.skip;
 }
 
-export async function start() {
-  let app: ElectronApplication;
+async function launchElectron() {
+  let error;
 
-  appStart: {
-    let error = undefined;
-    
-    for (let i = 0; i < 5; i += 1) {
-      try {
-        app = await electron.launch({
-          args: ["--integration-testing"], // this argument turns off the blocking of quit
-          executablePath: AppPaths[process.platform],
-          bypassCSP: true,
-        });
-        break appStart;
-      } catch (e) {
-        error = e;
-      }
+  for (let i = 0; i < 10; i += 1) {
+    try {
+      return await electron.launch({
+        args: ["--integration-testing"], // this argument turns off the blocking of quit
+        executablePath: AppPaths[process.platform],
+        bypassCSP: true,
+      });
+    } catch (e) {
+      error = e;
     }
-
-    throw error ?? new errors.TimeoutError("Failed to start electron after several attempts");
   }
 
-  const window = await app.waitForEvent("window", {
-    predicate: async (page) => page.url().startsWith("http://localhost"),
-  });
+  throw error ?? new Error("Failed to start electron after several attempts");
+}
 
-  return {
-    app,
-    window,
-    cleanup: async () => {
-      await window.close().catch(err => void err);
-      await app.close().catch(err => void err);
-    },
-  };
+export async function start() {
+  const app = await launchElectron();
+
+  try {
+    const window = await app.waitForEvent("window", {
+      predicate: async (page) => page.url().startsWith("http://localhost"),
+    });
+  
+    return {
+      app,
+      window,
+      cleanup: async () => {
+        await window.close().catch(err => void err);
+        await app.close().catch(err => void err);
+      },
+    };
+  } catch (error) {
+    await app.close().catch(err => void err);
+
+    throw error;
+  }
 }
 
 export async function clickWelcomeButton(window: Page) {
