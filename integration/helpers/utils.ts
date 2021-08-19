@@ -49,8 +49,9 @@ async function launchElectron() {
         bypassCSP: true,
         env: {
           CICD: tempy.directory(),
-        }
-      });
+        },
+        timeout: 100_000,
+      } as Parameters<typeof electron["launch"]>[0]);
     } catch (e) {
       error = e;
     }
