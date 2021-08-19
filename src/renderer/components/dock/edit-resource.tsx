@@ -96,7 +96,13 @@ export class EditResource extends React.Component<Props> {
       return null;
     }
     const store = editResourceStore.getStore(this.tabId);
-    const updatedResource: KubeObject = await store.update(this.resource, yaml.load(this.draft));
+    const data = yaml.load(this.draft);
+
+    if (!data || typeof data !== "object") {
+      throw new Error("Resource draft is not an object");
+    }
+
+    const updatedResource: KubeObject = await store.update(this.resource, data);
 
     this.saveDraft(updatedResource.toPlainObject()); // update with new resourceVersion to avoid further errors on save
     const resourceType = updatedResource.kind;

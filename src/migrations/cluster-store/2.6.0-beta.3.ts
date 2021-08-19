@@ -32,9 +32,13 @@ export default {
       const cluster = value[1];
 
       if (!cluster.kubeConfig) continue;
-      const kubeConfig = yaml.load(cluster.kubeConfig);
+      const config = yaml.load(cluster.kubeConfig);
 
-      if (!kubeConfig.hasOwnProperty("users")) continue;
+      if (!config || typeof config !== "object" || !config.hasOwnProperty("users")) {
+        continue;
+      }
+
+      const kubeConfig = config as Record<string, any>;
       const userObj = kubeConfig.users[0];
 
       if (userObj) {

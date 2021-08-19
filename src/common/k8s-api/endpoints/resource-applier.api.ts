@@ -30,7 +30,11 @@ export const resourceApplierApi = {
 
   async update(resource: object | string): Promise<KubeJsonApiData | null> {
     if (typeof resource === "string") {
-      resource = yaml.load(resource);
+      const r = yaml.load(resource);
+
+      if (typeof r !== "object") {
+        throw new Error("Cannot update resource to string or number");
+      }
     }
 
     const [data = null] = await apiBase.post<KubeJsonApiData[]>("/stack", { data: resource });
