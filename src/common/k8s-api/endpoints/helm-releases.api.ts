@@ -113,21 +113,31 @@ export async function getRelease(name: string, namespace: string): Promise<IRele
 }
 
 export async function createRelease(payload: IReleaseCreatePayload): Promise<IReleaseUpdateDetails> {
-  const { repo, ...data } = payload;
+  const { repo, chart: rawChart, values: rawValues, ...data } = payload;
+  const chart = `${repo}/${rawChart}`;
+  const values = yaml.load(rawValues);
 
-  data.chart = `${repo}/${data.chart}`;
-  data.values = yaml.load(data.values);
-
-  return apiBase.post(endpoint(), { data });
+  return apiBase.post(endpoint(), {
+    data: {
+      chart,
+      values,
+      ...data,
+    }
+  });
 }
 
 export async function updateRelease(name: string, namespace: string, payload: IReleaseUpdatePayload): Promise<IReleaseUpdateDetails> {
-  const { repo, ...data } = payload;
+  const { repo, chart: rawChart, values: rawValues, ...data } = payload;
+  const chart = `${repo}/${rawChart}`;
+  const values = yaml.load(rawValues);
 
-  data.chart = `${repo}/${data.chart}`;
-  data.values = yaml.load(data.values);
-
-  return apiBase.put(endpoint({ name, namespace }), { data });
+  return apiBase.put(endpoint({ name, namespace }), {
+    data: {
+      chart,
+      values,
+      ...data,
+    }
+  });
 }
 
 export async function deleteRelease(name: string, namespace: string): Promise<JsonApiData> {
