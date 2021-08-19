@@ -28,12 +28,7 @@ import * as tempy from "tempy";
 import logger from "./logger";
 import { appEventBus } from "../common/event-bus";
 import { cloneJsonObject } from "../common/utils";
-import { inspect } from "util";
-import { promiseExec } from "./promise-exec";
-
-function sanitize(raw: string): string {
-  return inspect(raw, false, undefined, false);
-}
+import { promiseExecFile } from "./promise-exec";
 
 function sanitizeObject(resource: KubernetesObject | any) {
   resource = cloneJsonObject(resource);
@@ -62,15 +57,14 @@ export class ResourceApplier {
 
     await fse.writeFile(fileName, content);
 
-    const cmd = [
-      sanitize(kubectlPath),
+    const args = [
       "apply",
-      "--kubeconfig", sanitize(proxyKubeconfigPath),
+      "--kubeconfig", proxyKubeconfigPath,
       "-o", "json",
-      "-f", sanitize(fileName),
-    ].join(" ");
+      "-f", fileName,
+    ];
 
-    logger.debug(`[RESOURCE-APPLIER]: shooting manifests with: ${cmd}`);
+    logger.debug(`[RESOURCE-APPLIER]: shooting manifests with: ${kubectlPath}`, { args });
 
     const execEnv: NodeJS.ProcessEnv = Object.assign({}, process.env);
     const httpsProxy = this.cluster.preferences?.httpsProxy;
@@ -80,7 +74,7 @@ export class ResourceApplier {
     }
 
     try {
-      const { stdout } = await promiseExec(cmd, { env: execEnv });
+      const { stdout } = await promiseExecFile(kubectlPath, args, { env: execEnv,  });
 
       return JSON.parse(stdout);
     } catch (error) {
@@ -109,17 +103,14 @@ export class ResourceApplier {
     );
 
     args.unshift(
-      sanitize(kubectlPath),
       subCmd,
-      "--kubeconfig", sanitize(proxyKubeconfigPath),
+      "--kubeconfig", proxyKubeconfigPath,
     );
 
-    const cmd = args.join(" ");
-
-    logger.info(`[RESOURCE-APPLIER] running cmd ${cmd}`);
+    logger.info(`[RESOURCE-APPLIER] Executing ${kubectlPath}`, { args });
 
     try {
-      const { stdout } = await promiseExec(cmd);
+      const { stdout } = await promiseExecFile(kubectlPath, args);
 
       return stdout;
     } catch (error) {
