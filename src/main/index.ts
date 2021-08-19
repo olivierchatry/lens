@@ -28,7 +28,6 @@ import * as LensExtensionsCommonApi from "../extensions/common-api";
 import * as LensExtensionsMainApi from "../extensions/main-api";
 import { app, autoUpdater, dialog, powerMonitor } from "electron";
 import { appName, isIntegrationTesting, isMac, productName } from "../common/vars";
-import path from "path";
 import { LensProxy } from "./lens-proxy";
 import { WindowManager } from "./window-manager";
 import { ClusterManager } from "./cluster-manager";
@@ -66,11 +65,9 @@ import { initMenu } from "./menu";
 import { initTray } from "./tray";
 import { kubeApiRequest, shellApiRequest } from "./proxy-functions";
 
-SentryInit();
-
-const workingDir = path.join(app.getPath("appData"), appName);
 const cleanup = disposer();
 
+SentryInit();
 app.setName(appName);
 
 logger.info(`📟 Setting ${productName} as protocol client for lens://`);
@@ -81,8 +78,8 @@ if (app.setAsDefaultProtocolClient("lens")) {
   logger.info("📟 Protocol client register failed ❗");
 }
 
-if (!process.env.CICD) {
-  app.setPath("userData", workingDir);
+if (process.env.CICD) {
+  app.setPath("appData", process.env.CICD);
 }
 
 if (process.env.LENS_DISABLE_GPU) {
@@ -123,7 +120,7 @@ app.on("second-instance", (event, argv) => {
 });
 
 app.on("ready", async () => {
-  logger.info(`🚀 Starting ${productName} from "${workingDir}"`);
+  logger.info(`🚀 Starting ${productName} from "${app.getPath("exe")}"`);
   logger.info("🐚 Syncing shell environment");
   await shellSync();
 

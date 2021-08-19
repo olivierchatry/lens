@@ -22,6 +22,7 @@ import { createHash } from "crypto";
 import * as os from "os";
 import * as path from "path";
 import { Frame, Page, _electron as electron } from "playwright";
+import tempy from "tempy";
 
 export const AppPaths: Partial<Record<NodeJS.Platform, string>> = {
   "win32": "./dist/win-unpacked/OpenLens.exe",
@@ -46,6 +47,9 @@ async function launchElectron() {
         args: ["--integration-testing"], // this argument turns off the blocking of quit
         executablePath: AppPaths[process.platform],
         bypassCSP: true,
+        env: {
+          CICD: tempy.directory(),
+        }
       });
     } catch (e) {
       error = e;
@@ -62,7 +66,7 @@ export async function start() {
     const window = await app.waitForEvent("window", {
       predicate: async (page) => page.url().startsWith("http://localhost"),
     });
-  
+
     return {
       app,
       window,

@@ -28,10 +28,9 @@ import { StorageHelper } from "./storageHelper";
 import { ClusterStore } from "../../common/cluster-store";
 import logger from "../../main/logger";
 import { getHostedClusterId, getPath, noop } from "../../common/utils";
-import { isIntegrationTesting } from "../../common/vars";
 
 const storage = observable({
-  initialized: isIntegrationTesting,
+  initialized: false,
   loaded: false,
   data: {} as Record<string/*key*/, any>, // json-serializable
 });

@@ -29,7 +29,7 @@ import { delay, iter, Singleton } from "../common/utils";
 import { ClusterFrameInfo, clusterFrameMap } from "../common/cluster-frames";
 import { IpcRendererNavigationEvents } from "../renderer/navigation/events";
 import logger from "./logger";
-import { integrationTestingArg, isIntegrationTesting, productName } from "../common/vars";
+import { productName } from "../common/vars";
 import { LensProxy } from "./lens-proxy";
 import * as path from "path";
 
@@ -75,12 +75,6 @@ export class WindowManager extends Singleton {
       app.dock?.show();
 
       const { width, height, x, y } = this.windowState;
-      const additionalArguments = [];
-
-      if (isIntegrationTesting) {
-        // pass on the argument to the renderer
-        additionalArguments.push(integrationTestingArg);
-      }
 
       this.mainWindow = new BrowserWindow({
         x, y, width, height,
@@ -96,7 +90,6 @@ export class WindowManager extends Singleton {
           nodeIntegrationInSubFrames: true,
           enableRemoteModule: true,
           contextIsolation: false,
-          additionalArguments,
         },
       });
       this.windowState.manage(this.mainWindow);
